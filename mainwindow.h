@@ -5,6 +5,8 @@
 #include <QDir>
 #include <QDebug>
 #include <QDate>
+#include <QTextCodec>
+#include <QTableWidget>
 
 namespace Ui {
 class MainWindow;
