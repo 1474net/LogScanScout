@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>458</width>
-    <height>419</height>
+    <width>481</width>
+    <height>482</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,10 +20,10 @@
     </property>
     <property name="geometry">
      <rect>
-      <x>130</x>
+      <x>0</x>
       <y>0</y>
-      <width>211</width>
-      <height>381</height>
+      <width>481</width>
+      <height>441</height>
      </rect>
     </property>
     <row>
@@ -33,14 +33,29 @@
     </row>
     <column>
      <property name="text">
-      <string>Id</string>
+      <string>№ терминала</string>
      </property>
     </column>
     <column>
      <property name="text">
-      <string>Date</string>
+      <string>Гос номер</string>
      </property>
     </column>
+    <column>
+     <property name="text">
+      <string>Дата последнего сообщения</string>
+     </property>
+    </column>
+    <item row="0" column="1">
+     <property name="text">
+      <string/>
+     </property>
+    </item>
+    <item row="0" column="2">
+     <property name="text">
+      <string/>
+     </property>
+    </item>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
@@ -48,7 +63,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>458</width>
+     <width>481</width>
      <height>20</height>
     </rect>
    </property>
