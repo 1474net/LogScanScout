@@ -6,12 +6,14 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    this -> setFixedSize(481,441);
 
     timer = new QTimer(this);
     timer->start(10000);
 
-//    Путь к файлу
-    path = "C:/new/logs";
+    settings = new QSettings("ScanLogScout", "1474net");
+    path = settings->value("data/path","").toString();
+
 //    Дата
     QDate dt, yd;
     dt =  QDate::currentDate();
@@ -24,6 +26,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     count = sizeof(terminal)/sizeof(terminal[0]);
     connect(timer, SIGNAL(timeout()), this, SLOT(chektimer()));
+
 
 
     initTabmle(count, terminal);
@@ -155,4 +158,47 @@ void MainWindow::findFile(QString path, QString today, QString yesterday, QStrin
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::on_actionSettings_triggered()
+{
+    QDialog dlg(this);
+    dlg.setWindowTitle(tr("Настройки"));
+    dlg.setFixedSize(220,100);
+
+    ledit1 = new QLineEdit(&dlg);
+    if ( path=="")
+        ledit1->setText("Нажмите для выбора");
+    else
+        ledit1->setText(path);
+    QPushButton * btn = new QPushButton;
+    btn->setFixedSize(100,25);
+    btn->setText("Открыть");
+    QDialogButtonBox *btn_box = new QDialogButtonBox(&dlg);
+    btn_box->setStandardButtons(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+
+    connect(btn_box, &QDialogButtonBox::accepted, &dlg, &QDialog::accept);
+    connect(btn_box, &QDialogButtonBox::rejected, &dlg, &QDialog::reject);
+    connect(btn, SIGNAL( pressed()), this, SLOT(on_actionEditPath()));
+
+    QFormLayout *layout = new QFormLayout();
+    layout->addRow(tr("Путь:"), ledit1);
+    layout->addRow(btn);
+    layout->setAlignment(btn, Qt::AlignHCenter);
+    layout->addWidget(btn_box);
+
+    dlg.setLayout(layout);
+
+    // В случае, если пользователь нажал "Ok".
+    if(dlg.exec() == QDialog::Accepted) {
+        const QString &str1 = ledit1->text();
+    }
+}
+void MainWindow::on_actionEditPath(){
+        QString str = QFileDialog::getExistingDirectory();
+        path = str;
+        ledit1->setText(str);
+        settings->setValue("data/path",path);
+        settings->sync();
+
 }

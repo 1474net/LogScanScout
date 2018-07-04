@@ -8,6 +8,14 @@
 #include <QTextCodec>
 #include <QTableWidget>
 #include <QTimer>
+#include <QLineEdit>
+#include <QDialogButtonBox>
+#include <QFormLayout>
+#include <QDialog>
+#include <QFileDialog>
+#include <QPushButton>
+#include <QSettings>
+
 namespace Ui {
 class MainWindow;
 }
@@ -26,6 +34,8 @@ public:
 private:
     Ui::MainWindow *ui;
     QTimer* timer;
+    QLineEdit *ledit1;
+    QSettings *settings;
 
     void findFile(QString path, QString today, QString yesterday, QString terminal[]);
     void initTabmle(int count, QString terminal[]=NULL);
@@ -36,14 +46,13 @@ private:
     int count;
     QString today;
     QString yesterday;
-    QString path;
+    QString path = "";
 
 
 private slots:
     void chektimer();
-
-
-
+    void on_actionSettings_triggered();
+    void on_actionEditPath();
 };
 
 #endif // MAINWINDOW_H
