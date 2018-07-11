@@ -15,6 +15,7 @@
 #include <QFileDialog>
 #include <QPushButton>
 #include <QSettings>
+#include <QMessageBox>
 
 namespace Ui {
 class MainWindow;
@@ -23,7 +24,11 @@ class MainWindow;
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-
+struct terminal{
+    QString ID;
+    QString NUMBER;
+    int LINE;
+};
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
@@ -36,13 +41,11 @@ private:
     QTimer* timer;
     QLineEdit *ledit1;
     QSettings *settings;
+    QList<terminal> terminals;
 
-    void findFile(QString path, QString today, QString yesterday, QString terminal[]);
-    void initTabmle(int count, QString terminal[]=NULL);
+    void findFile();
+    void initTabmle();
 
-    QString terminal[12] = {"479808","479810","479801","479806","479807",
-                                              "479800","479811","479816",
-                                     "479817","479818","479822","479823"};
     int count;
     QString today;
     QString yesterday;
@@ -53,6 +56,7 @@ private slots:
     void chektimer();
     void on_actionSettings_triggered();
     void on_actionEditPath();
+    void on_actionInfo_triggered();
 };
 
 #endif // MAINWINDOW_H

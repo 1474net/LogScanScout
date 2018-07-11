@@ -10,10 +10,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     timer = new QTimer(this);
     timer->start(10000);
+    connect(timer, SIGNAL(timeout()), this, SLOT(chektimer()));
 
     settings = new QSettings("ScanLogScout", "1474net");
     path = settings->value("data/path","").toString();
-
 //    Дата
     QDate dt, yd;
     dt =  QDate::currentDate();
@@ -22,25 +22,43 @@ MainWindow::MainWindow(QWidget *parent) :
     yesterday = yd.toString("yyyy-MM-dd");
 //    Debug() << today << yesterday ;
 
-//    Массив с терминалами
+    QFile file(QCoreApplication::applicationDirPath()+"/terminals.txt");
+    if ((file.exists())&&(file.open(QIODevice::ReadOnly)))
+    {
+        while(!file.atEnd()){
 
-    count = sizeof(terminal)/sizeof(terminal[0]);
-    connect(timer, SIGNAL(timeout()), this, SLOT(chektimer()));
+            QByteArray str = QByteArray::fromHex("cde5eff0e0e2e8ebfcedeee520f1eeeee1f9e5ede8e5204b4f4e5f544d5f484f53544b4e4620eef220d3cad2d121");
+            str = file.readLine();
+            QTextCodec *codec = QTextCodec::codecForName("Windows-1251");
+            QString strf = codec->toUnicode(str);
 
+            QStringList list2 = strf.split('\t', QString::SkipEmptyParts);
+            qDebug()<<list2[0] <<list2[1].simplified();
 
+            terminal Terminal;
+            Terminal.ID=list2[0];
+            Terminal.NUMBER=list2[1];
+            Terminal.LINE=0;
+            terminals.append(Terminal);
+        }
+    }
+    else {
+        qDebug()<< "error file not exist" <<file;
+    }
 
-    initTabmle(count, terminal);
+    count = terminals.size();
+    initTabmle();
 
 
 }
 
 void MainWindow::chektimer(){
-    qDebug()<< "Sosy"<< count;
-    findFile(path, today, yesterday, terminal);
+    qDebug()<< "checktime"<< count;
+    findFile();
 
 }
 
-void MainWindow::initTabmle(int count, QString terminal[]){
+void MainWindow::initTabmle(){
     ui->tableWidget->setShowGrid(true); // Включаем сетку
 // Разрешаем выделение только одного элемента
     ui->tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -58,11 +76,10 @@ void MainWindow::initTabmle(int count, QString terminal[]){
     while (i<count){
         ui->tableWidget->insertRow(i);
         ui->tableWidget->setItem(i,0, new QTableWidgetItem());
-        ui->tableWidget->item(i,0)->setText( terminal[i]);
+        ui->tableWidget->item(i,0)->setText( terminals[i].ID);
 
         ui->tableWidget->setItem(i,1, new QTableWidgetItem());
-        ui->tableWidget->setItem(i,1, new QTableWidgetItem());
-        ui->tableWidget->setItem(i,2, new QTableWidgetItem());
+        ui->tableWidget->item(i,1)->setText( terminals[i].NUMBER);
         ui->tableWidget->setItem(i,2, new QTableWidgetItem());
         i++;
     }
@@ -70,7 +87,7 @@ void MainWindow::initTabmle(int count, QString terminal[]){
 
 }
 
-void MainWindow::findFile(QString path, QString today, QString yesterday, QString terminal[])
+void MainWindow::findFile()
 {
 //    Сканирование папок на название текущей даты
     QDir logDir(path);
@@ -101,44 +118,59 @@ void MainWindow::findFile(QString path, QString today, QString yesterday, QStrin
                         continue;
 //                    Цикл проверки имен терминалов
                     while(j<=count){
-                        qDebug()<< name_term << "Проверяем теримал";
+//                        qDebug()<< name_term << "Проверяем теримал";
 //                         Проверяем на совпадения Входит ли имя терминала в название папки
-                        if (name_term.contains(terminal[j])){
-                            qDebug()<< name_term << "Терминал найден" << terminal[j] << j <<"count";
+                        if (name_term.contains(terminals[j].ID)){
+                            qDebug()<< name_term << "Терминал найден" << terminals[j].ID << j <<"count";
 //                             Если совпал то проверяем наличие файла логов
                             QFile file(path+"/"+dateFold+"/"+name_term+"/"+"Debug.txt");
                             if ((file.exists())&&(file.open(QIODevice::ReadOnly)))
                             {
                                 QString logDate="";
                                 QString logTime="";
+                                QByteArray str = QByteArray::fromHex("cde5eff0e0e2e8ebfcedeee520f1eeeee1f9e5ede8e5204b4f4e5f544d5f484f53544b4e4620eef220d3cad2d121");
+                                int line_i=0;
                                 //Чтения файла 
-                                while(!file.atEnd())
-                                    {
-//                                    Перекодировка из UTF8 в win1251
-                                        QByteArray str = QByteArray::fromHex("cde5eff0e0e2e8ebfcedeee520f1eeeee1f9e5ede8e5204b4f4e5f544d5f484f53544b4e4620eef220d3cad2d121");
+                                while(!file.atEnd()){
+                                        if(line_i<terminals[j].LINE){
+                                            str=file.readLine();
+                                            line_i++;
+                                            continue;
+                                        }
+//                                    Перекодировка из UTF8 в win125
                                         str=file.readLine();
                                         QTextCodec *codec = QTextCodec::codecForName("Windows-1251");
                                         QString strf = codec->toUnicode(str);
 //                                        обрезаем лишнее из строки
                                         QString newStr = strf.left(str.indexOf(';'));
-//                                        Ищем строку с датой и временим
+//                                       Ищем строку с датой и временим
                                         if (newStr.contains("Время сообщения:")){
                                            QStringRef subString(&newStr, 17, 10);
                                            logDate = subString.toString();
                                            subString = QStringRef(&newStr, 28, 5);
                                            logTime = subString.toString();
-//                                          qDebug() << logDate << "Лох" << logTime << "Loh" << j ;
-//                                           Записываем в данные в таблицу
+//                                          Записываем в данные в таблицу
                                            ui->tableWidget->item(j,2)->setText(logDate+" "+logTime);
-
                                         }
+                                        line_i++;
 
                                     }
                                 file.close();
-                                if (logDate=="02.07.2018")
-                                    ui->tableWidget->item(j,2)->setBackgroundColor(Qt::green);
-                                else {
+                                terminals[j].LINE=line_i-1;
+                                if (logDate==QDate().currentDate().toString("dd.MM.yyyy")&&logDate!=""){
+                                    if (logTime[0]==QTime::currentTime().toString()[0])
+                                        if (logTime[1]==":")
+                                            ui->tableWidget->item(j,2)->setBackgroundColor(Qt::green);
+                                        else
+                                            if (logTime[1]==QTime::currentTime().toString()[1])
+                                                ui->tableWidget->item(j,2)->setBackgroundColor(Qt::green);
+                                            else
+                                                ui->tableWidget->item(j,2)->setBackgroundColor(Qt::yellow);
+                                }
+                                else if (logDate!=""){
                                     ui->tableWidget->item(j,2)->setBackgroundColor(Qt::red);
+                                    qDebug() << QDate().currentDate().toString("dd.MM.yyyy") << logDate;
+                                    qDebug() <<terminals[j].LINE;
                                 }
                                 break;
                             }
@@ -201,4 +233,9 @@ void MainWindow::on_actionEditPath(){
         settings->setValue("data/path",path);
         settings->sync();
 
+}
+
+void MainWindow::on_actionInfo_triggered()
+{
+    QMessageBox::aboutQt(this);
 }
