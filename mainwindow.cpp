@@ -158,14 +158,15 @@ void MainWindow::findFile()
                                 file.close();
                                 terminals[j].LINE=line_i-1;
                                 if (logDate==QDate().currentDate().toString("dd.MM.yyyy")&&logDate!=""){
-                                    if (logTime[0]==QTime::currentTime().toString()[0])
+                                    if (logTime[0]==QTime::currentTime().toString()[0]){
                                         if (logTime[1]==":")
                                             ui->tableWidget->item(j,2)->setBackgroundColor(Qt::green);
                                         else
                                             if (logTime[1]==QTime::currentTime().toString()[1])
                                                 ui->tableWidget->item(j,2)->setBackgroundColor(Qt::green);
-                                            else
-                                                ui->tableWidget->item(j,2)->setBackgroundColor(Qt::yellow);
+                                    }
+                                    else
+                                        ui->tableWidget->item(j,2)->setBackgroundColor(Qt::yellow);
                                 }
                                 else if (logDate!=""){
                                     ui->tableWidget->item(j,2)->setBackgroundColor(Qt::red);
