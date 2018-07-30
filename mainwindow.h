@@ -11,11 +11,15 @@
 #include <QLineEdit>
 #include <QDialogButtonBox>
 #include <QFormLayout>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
 #include <QDialog>
 #include <QFileDialog>
 #include <QPushButton>
 #include <QSettings>
 #include <QMessageBox>
+#include <QLabel>
+#include <QThread>
 
 namespace Ui {
 class MainWindow;
@@ -45,6 +49,7 @@ private:
 
     void findFile();
     void initTabmle();
+    void readFileterminals();
 
     int count;
     QString today;
