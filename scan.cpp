@@ -1,19 +1,15 @@
 #include "scan.h"
 
-scan::scan()
+void scan::pars()
 {
-
-}
-void scan::doWork()
-{
-for(int i = 0; i <= 10000; i++)
-{
-    for(int j = 0; j <= 10000; j++)
-    {
-        qDebug() << j;
-
+    foreach (MainWindow::terminal ter, w->terminals) {
+        QFile file(w->path+"/"+w->today+"/terminal_"+ter.ID+"_5ea09afb-0467-4e2f-b9a5-fa59d62d8720/"+"Debug.txt");
+        if (file.exists())
+        {
+            emit send("NESOSY");
+        }
+        else
+            emit send("SOSY");
     }
-    qDebug() << i;
 
-}
 }

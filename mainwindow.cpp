@@ -10,7 +10,7 @@ MainWindow::MainWindow(QWidget *parent) :
 //    this -> setFixedSize(481,441);
 
     timer = new QTimer(this);
-    timer->start(10000);
+    timer->start(1000);
     connect(timer, SIGNAL(timeout()), this, SLOT(chektimer()));
 
     settings = new QSettings("ScanLogScout", "1474net");
@@ -102,17 +102,13 @@ void MainWindow::initTabmle(){
 
 void MainWindow::findFile()
 {
-    foreach (terminal ter, terminals) {
-        QFile file(path+"/"+today+"/terminal_"+ter.ID+"_5ea09afb-0467-4e2f-b9a5-fa59d62d8720/"+"Debug.txt");
-        if (file.exists())
-        {
-            qDebug()<< file;
-        }
-    }
-    scan *sc= new scan;
+    scan *sc= new scan(this);
     QThread *thread= new QThread;
     sc->moveToThread(thread);
-    connect(thread, SIGNAL(started()), sc, SLOT(doWork()));
+
+    connect(sc, SIGNAL(send(QString)), this, SLOT(update(QString)));
+    connect(thread, SIGNAL(started()), sc, SLOT(pars()));
+
     thread->start();
 /*
 //                    Цикл проверки имен терминалов
@@ -183,6 +179,11 @@ void MainWindow::findFile()
     }*/
 
 }
+void MainWindow::update(QString str){
+
+    qDebug() << str;
+}
+
 MainWindow::~MainWindow()
 {
     delete ui;

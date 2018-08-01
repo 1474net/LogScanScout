@@ -6,9 +6,15 @@ class scan:public QObject
 {
     Q_OBJECT
 public:
-    scan();
+    MainWindow* w;
+    scan(MainWindow* wind): w(wind){}
+
+
+
 public slots:
-    void doWork();
+    void pars();
+signals:
+    void send(QString);
 };
 
 #endif // SCAN_H
