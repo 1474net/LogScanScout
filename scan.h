@@ -8,11 +8,11 @@ class scan:public QObject
 public:
     MainWindow* w;
     scan(MainWindow* wind): w(wind){}
-
+    QString pars(QFile * file, MainWindow::terminal *);
 
 
 public slots:
-    void pars();
+    void find();
 signals:
     void send(QString);
 };

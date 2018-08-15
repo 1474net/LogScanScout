@@ -23,11 +23,6 @@ MainWindow::MainWindow(QWidget *parent) :
     today = dt.toString("yyyy-MM-dd");
     yesterday = yd.toString("yyyy-MM-dd");
 
-
-
-
-
-
     readFileterminals();
     initTabmle();
 
@@ -35,7 +30,7 @@ MainWindow::MainWindow(QWidget *parent) :
 }
 
 void MainWindow::chektimer(){
-    qDebug()<< "checktime"<< count;
+    qDebug()<< "checktime";
     findFile();
 
 }
@@ -107,7 +102,7 @@ void MainWindow::findFile()
     sc->moveToThread(thread);
 
     connect(sc, SIGNAL(send(QString)), this, SLOT(update(QString)));
-    connect(thread, SIGNAL(started()), sc, SLOT(pars()));
+    connect(thread, SIGNAL(started()), sc, SLOT(find()));
 
     thread->start();
 /*
