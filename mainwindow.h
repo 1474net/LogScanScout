@@ -60,7 +60,7 @@ public:
 
 
 private slots:
-    void update(QString);
+    void update(QString, int);
     void chektimer();
     void on_actionSettings_triggered();
     void on_actionEditPath();

@@ -8,13 +8,13 @@ class scan:public QObject
 public:
     MainWindow* w;
     scan(MainWindow* wind): w(wind){}
-    QString pars(QFile * file, MainWindow::terminal *);
-
+    QString pars(QFile * file, int line);
+    int line;
 
 public slots:
     void find();
 signals:
-    void send(QString);
+    void send(QString,int);
 };
 
 #endif // SCAN_H

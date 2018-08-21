@@ -2,36 +2,38 @@
 
 void scan::find()
 {
-    foreach (MainWindow::terminal ter, w->terminals) {
-        QFile file(w->path+"/"+w->today+"/terminal_"+ter.ID+"_5ea09afb-0467-4e2f-b9a5-fa59d62d8720/"+"Debug.txt");
+    for (int i=0;i<w->count; i++) {
+        QFile file(w->path+"/"+w->today+"/terminal_"+w->terminals[i].ID+"_5ea09afb-0467-4e2f-b9a5-fa59d62d8720/"+"Debug.txt");
         if (file.exists()){
-            emit send(pars(&file, &ter));
+            emit send(pars(&file, w->terminals[i].LINE),i);
             file.close();
+            w->terminals[i].LINE=line;
         }
         else{
-            QFile file(w->path+"/"+w->yesterday+"/terminal_"+ter.ID+"_5ea09afb-0467-4e2f-b9a5-fa59d62d8720/"+"Debug.txt");
+            QFile file(w->path+"/"+w->yesterday+"/terminal_"+w->terminals[i].ID+"_5ea09afb-0467-4e2f-b9a5-fa59d62d8720/"+"Debug.txt");
             if (file.exists()){
-                emit send(pars(&file, &ter));
+                emit send(pars(&file, w->terminals[i].LINE),i);
                 file.close();
+                w->terminals[i].LINE=line;
             }
             else {
-                emit send("SOSY");
+                emit send("SOSY",-1);
             }
 
         }
     }
 }
 
-QString scan::pars(QFile *file, MainWindow::terminal * terminal){
+QString scan::pars(QFile *file, int line){
 
         QString logDate="";
         QString logTime="";
         QByteArray str = QByteArray::fromHex("cde5eff0e0e2e8ebfcedeee520f1eeeee1f9e5ede8e5204b4f4e5f544d5f484f53544b4e4620eef220d3cad2d121");
-        int line_i;
-        qDebug()<<terminal->LINE;
+        int line_i = line;
+        qDebug()<<line;
         if (file->open(QIODevice::ReadOnly))
             while(!file->atEnd()){
-                    if(line_i<terminal->LINE){
+                    if(line_i<line){
                         str=file->readLine();
                         line_i++;
                         continue;
@@ -53,7 +55,6 @@ QString scan::pars(QFile *file, MainWindow::terminal * terminal){
                     }
                     line_i++;
                 }
-        terminal->LINE=line_i-1;
-
+                this->line=line_i;
         return logDate+" "+logTime;
 }

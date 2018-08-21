@@ -10,7 +10,7 @@ MainWindow::MainWindow(QWidget *parent) :
 //    this -> setFixedSize(481,441);
 
     timer = new QTimer(this);
-    timer->start(1000);
+    timer->start(10000);
     connect(timer, SIGNAL(timeout()), this, SLOT(chektimer()));
 
     settings = new QSettings("ScanLogScout", "1474net");
@@ -101,7 +101,7 @@ void MainWindow::findFile()
     QThread *thread= new QThread;
     sc->moveToThread(thread);
 
-    connect(sc, SIGNAL(send(QString)), this, SLOT(update(QString)));
+    connect(sc, SIGNAL(send(QString,int)), this, SLOT(update(QString,int)));
     connect(thread, SIGNAL(started()), sc, SLOT(find()));
 
     thread->start();
@@ -174,9 +174,33 @@ void MainWindow::findFile()
     }*/
 
 }
-void MainWindow::update(QString str){
+void MainWindow::update(QString str, int i){
 
-    qDebug() << str;
+    QStringRef subString(&str, 0, 10);
+    QString logDate = subString.toString();
+
+    subString = QStringRef(&str, 11, 5);
+    QString logTime = subString.toString();
+
+    qDebug() << logDate << logTime << i;
+    ui->tableWidget->item(i,2)->setText(str);
+    if (logDate==QDate().currentDate().toString("dd.MM.yyyy")&&logDate!=""){
+        if (logTime[0]==QTime::currentTime().toString()[0]){
+            if (logTime[1]==":")
+                ui->tableWidget->item(i,2)->setBackgroundColor(Qt::green);
+            else
+                if (logTime[1]==QTime::currentTime().toString()[1])
+                    ui->tableWidget->item(i,2)->setBackgroundColor(Qt::green);
+                else
+                    ui->tableWidget->item(i,2)->setBackgroundColor(Qt::yellow);
+        }
+        else {
+            ui->tableWidget->item(i,2)->setBackgroundColor(Qt::yellow);
+        }
+    }
+    else if (logDate!=""){
+        ui->tableWidget->item(i,2)->setBackgroundColor(Qt::red);
+    }
 }
 
 MainWindow::~MainWindow()
