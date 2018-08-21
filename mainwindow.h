@@ -36,6 +36,7 @@ public:
         QString ID;
         QString NUMBER;
         int LINE;
+        QString DATE;
     };
     ~MainWindow();
 
