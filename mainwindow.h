@@ -11,11 +11,15 @@
 #include <QLineEdit>
 #include <QDialogButtonBox>
 #include <QFormLayout>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
 #include <QDialog>
 #include <QFileDialog>
 #include <QPushButton>
 #include <QSettings>
 #include <QMessageBox>
+#include <QLabel>
+#include <QThread>
 
 namespace Ui {
 class MainWindow;
@@ -24,19 +28,22 @@ class MainWindow;
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-struct terminal{
-    QString ID;
-    QString NUMBER;
-    int LINE;
-};
+
 public:
     explicit MainWindow(QWidget *parent = 0);
+
+    struct terminal{
+        QString ID;
+        QString NUMBER;
+        int LINE;
+        QString DATE;
+    };
     ~MainWindow();
 
 
 
 
-private:
+public:
     Ui::MainWindow *ui;
     QTimer* timer;
     QLineEdit *ledit1;
@@ -45,6 +52,7 @@ private:
 
     void findFile();
     void initTabmle();
+    void readFileterminals();
 
     int count;
     QString today;
@@ -53,6 +61,7 @@ private:
 
 
 private slots:
+    void update(QString, int);
     void chektimer();
     void on_actionSettings_triggered();
     void on_actionEditPath();

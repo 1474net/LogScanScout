@@ -1,12 +1,13 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "scan.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    this -> setFixedSize(481,441);
+//    this -> setFixedSize(481,441);
 
     timer = new QTimer(this);
     timer->start(10000);
@@ -14,14 +15,28 @@ MainWindow::MainWindow(QWidget *parent) :
 
     settings = new QSettings("ScanLogScout", "1474net");
     path = settings->value("data/path","").toString();
+
 //    Дата
     QDate dt, yd;
     dt =  QDate::currentDate();
     yd = dt.addDays(-1);
     today = dt.toString("yyyy-MM-dd");
     yesterday = yd.toString("yyyy-MM-dd");
-//    Debug() << today << yesterday ;
 
+    readFileterminals();
+    initTabmle();
+
+
+}
+
+void MainWindow::chektimer(){
+    qDebug()<< "checktime";
+    findFile();
+
+}
+
+void MainWindow::readFileterminals(){
+//    Чтение из фала список терминалов и создание структуры
     QFile file(QCoreApplication::applicationDirPath()+"/terminals.txt");
     if ((file.exists())&&(file.open(QIODevice::ReadOnly)))
     {
@@ -45,18 +60,10 @@ MainWindow::MainWindow(QWidget *parent) :
     else {
         qDebug()<< "error file not exist" <<file;
     }
-
+//    Подчет количества Элементов
     count = terminals.size();
-    initTabmle();
-
-
 }
 
-void MainWindow::chektimer(){
-    qDebug()<< "checktime"<< count;
-    findFile();
-
-}
 
 void MainWindow::initTabmle(){
     ui->tableWidget->setShowGrid(true); // Включаем сетку
@@ -85,109 +92,60 @@ void MainWindow::initTabmle(){
     }
     ui->tableWidget->removeRow(i);
 
+//        Сортировка
+//    ui->tableWidget->resizeColumnsToContents();
+//    ui->tableWidget->setSortingEnabled(true);
+
+
 }
+
 
 void MainWindow::findFile()
 {
-//    Сканирование папок на название текущей даты
-    QDir logDir(path);
-//    dir.setFilter( QDir::Dirs );
-    logDir.setSorting(QDir::Name);
-    QFileInfoList folderitems ( logDir.entryInfoList() );
+    scan *sc= new scan(this);
+    QThread *thread= new QThread;
+    sc->moveToThread(thread);
 
-    foreach ( QFileInfo i, folderitems ) {
-            QString dateFold( i.fileName() );
-//             Игнорируем папки текущей и предыдушей папки
-            if ( dateFold == "." || dateFold == ".." || dateFold.isEmpty() )
-                continue;
-//             Сравниваем имена папок и текушею дату
-            if ( i.isDir() && dateFold == today || dateFold == yesterday ){
-                qDebug() << dateFold << "Дата найдена";
-                
-//                 проверяем наличие папок с именами терминалов
-                QDir termPath(path+"/"+dateFold);
-                termPath.setSorting(QDir::Name);
-                QFileInfoList folderitems_t ( termPath.entryInfoList() );
-                int j;
+    connect(sc, SIGNAL(send(QString,int)), this, SLOT(update(QString,int)));
+    connect(thread, SIGNAL(started()), sc, SLOT(find()));
 
-                foreach (QFileInfo t, folderitems_t) {
-                    j=0;
-                    QString name_term( t.fileName() );
-//                     Счетчик для перебора массива с терминалами
-                    if ( name_term == "." || name_term == ".." || name_term.isEmpty() )
-                        continue;
-//                    Цикл проверки имен терминалов
-                    while(j<=count){
-//                        qDebug()<< name_term << "Проверяем теримал";
-//                         Проверяем на совпадения Входит ли имя терминала в название папки
-                        if (name_term.contains(terminals[j].ID)){
-                            qDebug()<< name_term << "Терминал найден" << terminals[j].ID << j <<"count";
-//                             Если совпал то проверяем наличие файла логов
-                            QFile file(path+"/"+dateFold+"/"+name_term+"/"+"Debug.txt");
-                            if ((file.exists())&&(file.open(QIODevice::ReadOnly)))
-                            {
-                                QString logDate="";
-                                QString logTime="";
-                                QByteArray str = QByteArray::fromHex("cde5eff0e0e2e8ebfcedeee520f1eeeee1f9e5ede8e5204b4f4e5f544d5f484f53544b4e4620eef220d3cad2d121");
-                                int line_i=0;
-                                //Чтения файла 
-                                while(!file.atEnd()){
-                                        if(line_i<terminals[j].LINE){
-                                            str=file.readLine();
-                                            line_i++;
-                                            continue;
-                                        }
-//                                    Перекодировка из UTF8 в win125
-                                        str=file.readLine();
-                                        QTextCodec *codec = QTextCodec::codecForName("Windows-1251");
-                                        QString strf = codec->toUnicode(str);
-//                                        обрезаем лишнее из строки
-                                        QString newStr = strf.left(str.indexOf(';'));
-//                                       Ищем строку с датой и временим
-                                        if (newStr.contains("Время сообщения:")){
-                                           QStringRef subString(&newStr, 17, 10);
-                                           logDate = subString.toString();
-                                           subString = QStringRef(&newStr, 28, 5);
-                                           logTime = subString.toString();
-//                                          Записываем в данные в таблицу
-                                           ui->tableWidget->item(j,2)->setText(logDate+" "+logTime);
-                                        }
-                                        line_i++;
+    thread->start();
 
-                                    }
-                                file.close();
-                                terminals[j].LINE=line_i-1;
-                                if (logDate==QDate().currentDate().toString("dd.MM.yyyy")&&logDate!=""){
-                                    if (logTime[0]==QTime::currentTime().toString()[0]){
-                                        if (logTime[1]==":")
-                                            ui->tableWidget->item(j,2)->setBackgroundColor(Qt::green);
-                                        else
-                                            if (logTime[1]==QTime::currentTime().toString()[1])
-                                                ui->tableWidget->item(j,2)->setBackgroundColor(Qt::green);
-                                    }
-                                    else
-                                        ui->tableWidget->item(j,2)->setBackgroundColor(Qt::yellow);
-                                }
-                                else if (logDate!=""){
-                                    ui->tableWidget->item(j,2)->setBackgroundColor(Qt::red);
-                                    qDebug() << QDate().currentDate().toString("dd.MM.yyyy") << logDate;
-                                    qDebug() <<terminals[j].LINE;
-                                }
-                                break;
-                            }
-
-                        }
-                        else{
-                          j++;
-                        }
-
-                    }
-
-                }
-            }
-        }
 
 }
+
+void MainWindow::update(QString str, int i){
+
+    QStringRef subString(&str, 0, 10);
+    QString logDate = subString.toString();
+
+    subString = QStringRef(&str, 11, 5);
+    QString logTime = subString.toString();
+
+
+
+    ui->tableWidget->item(i,2)->setText(str);
+
+    if (logDate==QDate().currentDate().toString("dd.MM.yyyy")&&logDate!=""){
+        if (logTime[0]==QTime::currentTime().toString()[0]){
+            if (logTime[1]==":")
+                ui->tableWidget->item(i,2)->setBackgroundColor(Qt::green);
+            else
+                if (logTime[1]==QTime::currentTime().toString()[1])
+                    ui->tableWidget->item(i,2)->setBackgroundColor(Qt::green);
+                else
+                    ui->tableWidget->item(i,2)->setBackgroundColor(Qt::yellow);
+        }
+        else {
+            ui->tableWidget->item(i,2)->setBackgroundColor(Qt::yellow);
+        }
+    }
+    else if (logDate!=""){
+        ui->tableWidget->item(i,2)->setBackgroundColor(Qt::red);
+    }
+    terminals[i].DATE=str;
+}
+
 MainWindow::~MainWindow()
 {
     delete ui;
