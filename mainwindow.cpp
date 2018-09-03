@@ -30,7 +30,7 @@ MainWindow::MainWindow(QWidget *parent) :
 }
 
 void MainWindow::chektimer(){
-    qDebug()<< "checktime";
+    qDebug()<< "\n\n\n\nЗапуск проверки\n################# ";
     findFile();
 
 }
@@ -79,15 +79,32 @@ void MainWindow::initTabmle(){
     ui->tableWidget->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
     ui->tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Fixed);
 
+
+    QImage imgRed;
+    imgRed = QImage(":/ico/red.png").scaled(24,24,  Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+
+//    QImage imgGreen;
+//    imgGreen = QImage(":/ico/green.png").scaled(24,24,Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+
+
     int i=0;
     while (i<count){
         ui->tableWidget->insertRow(i);
-        ui->tableWidget->setItem(i,0, new QTableWidgetItem());
-        ui->tableWidget->item(i,0)->setText( terminals[i].ID);
+
+        ui->tableWidget->setItem(i, 0, new QTableWidgetItem());
+        QTableWidgetItem *wigItem = new QTableWidgetItem;
+        wigItem->setData(Qt::DecorationRole, QPixmap::fromImage(imgRed));
+        ui->tableWidget->setItem(i, 0, wigItem);
+
+        ui->tableWidget->setItem(i,1, new QTableWidgetItem);
+        ui->tableWidget->item(i,1)->setTextAlignment(Qt::AlignCenter);
 
         ui->tableWidget->setItem(i,1, new QTableWidgetItem());
-        ui->tableWidget->item(i,1)->setText( terminals[i].NUMBER);
+        ui->tableWidget->item(i,1)->setText( terminals[i].ID);
+
         ui->tableWidget->setItem(i,2, new QTableWidgetItem());
+        ui->tableWidget->item(i,2)->setText( terminals[i].NUMBER);
+        ui->tableWidget->setItem(i,3, new QTableWidgetItem());
         i++;
     }
     ui->tableWidget->removeRow(i);
@@ -102,6 +119,7 @@ void MainWindow::initTabmle(){
 
 void MainWindow::findFile()
 {
+//    Фоновый парсинг файла
     scan *sc= new scan(this);
     QThread *thread= new QThread;
     sc->moveToThread(thread);
@@ -116,34 +134,62 @@ void MainWindow::findFile()
 
 void MainWindow::update(QString str, int i){
 
+    qDebug() << "Дата" <<str;
+
     QStringRef subString(&str, 0, 10);
     QString logDate = subString.toString();
 
     subString = QStringRef(&str, 11, 5);
     QString logTime = subString.toString();
 
+    if(str!=" "){
 
+    // Обновление данных таблицы
+        ui->tableWidget->item(i,3)->setText(str);
 
-    ui->tableWidget->item(i,2)->setText(str);
-
-    if (logDate==QDate().currentDate().toString("dd.MM.yyyy")&&logDate!=""){
-        if (logTime[0]==QTime::currentTime().toString()[0]){
-            if (logTime[1]==":")
-                ui->tableWidget->item(i,2)->setBackgroundColor(Qt::green);
-            else
-                if (logTime[1]==QTime::currentTime().toString()[1])
-                    ui->tableWidget->item(i,2)->setBackgroundColor(Qt::green);
+    //    Цвет табличек
+        if (logDate==QDate().currentDate().toString("dd.MM.yyyy")&&logDate!=""){
+            if (logTime[0]==QTime::currentTime().toString()[0]){
+                if (logTime[1]==":")
+                    ui->tableWidget->item(i,3)->setBackgroundColor(Qt::green);
                 else
-                    ui->tableWidget->item(i,2)->setBackgroundColor(Qt::yellow);
+                    if (logTime[1]==QTime::currentTime().toString()[1])
+                        ui->tableWidget->item(i,3)->setBackgroundColor(Qt::green);
+                    else
+                        ui->tableWidget->item(i,3)->setBackgroundColor(Qt::yellow);
+            }
+            else {
+                ui->tableWidget->item(i,3)->setBackgroundColor(Qt::yellow);
+            }
         }
-        else {
-            ui->tableWidget->item(i,2)->setBackgroundColor(Qt::yellow);
+        else if (logDate!=""){
+            ui->tableWidget->item(i,3)->setBackgroundColor(Qt::red);
         }
+
     }
-    else if (logDate!=""){
-        ui->tableWidget->item(i,2)->setBackgroundColor(Qt::red);
+
+//    Проверка статуса загрузки терминалов и изменение цвета иконки
+    qDebug() << terminals[i].DATE;
+
+    if(terminals[i].DATE!=str && str!=" ")
+    {
+            QImage imgGreen;
+            imgGreen = QImage(":/ico/green.png").scaled(24,24,Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+            QTableWidgetItem *wigItem = new QTableWidgetItem;
+            wigItem->setData(Qt::DecorationRole, QPixmap::fromImage(imgGreen));
+            ui->tableWidget->setItem(i, 0, wigItem);
+            terminals[i].DATE=str;
+
     }
-    terminals[i].DATE=str;
+    else {
+
+        QImage imgRed;
+        imgRed = QImage(":/ico/red.png").scaled(24,24,  Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+        QTableWidgetItem *wigItem = new QTableWidgetItem;
+        wigItem->setData(Qt::DecorationRole, QPixmap::fromImage(imgRed));
+        ui->tableWidget->setItem(i, 0, wigItem);
+    }
+
 }
 
 MainWindow::~MainWindow()

@@ -2,6 +2,7 @@
 
 void scan::find()
 {
+    line =0;
     for (int i=0;i<w->count; i++) {
         QFile file(w->path+"/"+w->today+"/terminal_"+w->terminals[i].ID+"_5ea09afb-0467-4e2f-b9a5-fa59d62d8720/"+"Debug.txt");
         if (file.exists()){
@@ -29,7 +30,7 @@ QString scan::pars(QFile *file, int line){
         QString logDate="";
         QString logTime="";
         QByteArray str = QByteArray::fromHex("cde5eff0e0e2e8ebfcedeee520f1eeeee1f9e5ede8e5204b4f4e5f544d5f484f53544b4e4620eef220d3cad2d121");
-        int line_i = line;
+        int line_i = 0;
         qDebug()<<line;
         if (file->open(QIODevice::ReadOnly))
             while(!file->atEnd()){
