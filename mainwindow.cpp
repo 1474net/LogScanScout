@@ -20,7 +20,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QDate dt, yd;
     dt =  QDate::currentDate();
     yd = dt.addDays(-1);
-    today = dt.toString("yyyy-MM-dd");
+    today = dt.toString("yyyy-MM-dd_");
     yesterday = yd.toString("yyyy-MM-dd");
 
     readFileterminals();
@@ -44,7 +44,7 @@ void MainWindow::readFileterminals(){
 
             QByteArray str = QByteArray::fromHex("cde5eff0e0e2e8ebfcedeee520f1eeeee1f9e5ede8e5204b4f4e5f544d5f484f53544b4e4620eef220d3cad2d121");
             str = file.readLine();
-            QTextCodec *codec = QTextCodec::codecForName("Windows-1251");
+            QTextCodec *codec = QTextCodec::codecForName("UTF-8");
             QString strf = codec->toUnicode(str);
 
             QStringList list2 = strf.split('\t', QString::SkipEmptyParts);
@@ -58,7 +58,7 @@ void MainWindow::readFileterminals(){
         }
     }
     else {
-        qDebug()<< "error file not exist" <<file;
+        //qDebug()<< "error file not exist" <<file;
     }
 //    Подчет количества Элементов
     count = terminals.size();
@@ -133,16 +133,14 @@ void MainWindow::findFile()
 }
 
 void MainWindow::update(QString str, int i){
-
-    qDebug() << "Дата" <<str;
-
+    if(str!=""){
     QStringRef subString(&str, 0, 10);
     QString logDate = subString.toString();
 
     subString = QStringRef(&str, 11, 5);
     QString logTime = subString.toString();
 
-    if(str!=" "){
+    qDebug() << "Дата" << logDate << logTime;
 
     // Обновление данных таблицы
         ui->tableWidget->item(i,3)->setText(str);
@@ -165,9 +163,7 @@ void MainWindow::update(QString str, int i){
         else if (logDate!=""){
             ui->tableWidget->item(i,3)->setBackgroundColor(Qt::red);
         }
-
     }
-
 //    Проверка статуса загрузки терминалов и изменение цвета иконки
     qDebug() << terminals[i].DATE;
 
@@ -179,10 +175,8 @@ void MainWindow::update(QString str, int i){
             wigItem->setData(Qt::DecorationRole, QPixmap::fromImage(imgGreen));
             ui->tableWidget->setItem(i, 0, wigItem);
             terminals[i].DATE=str;
-
     }
     else {
-
         QImage imgRed;
         imgRed = QImage(":/ico/red.png").scaled(24,24,  Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
         QTableWidgetItem *wigItem = new QTableWidgetItem;
